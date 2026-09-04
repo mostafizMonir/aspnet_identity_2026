@@ -29,13 +29,17 @@ builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.Cookie.Name = "__Host-session";
+        options.Cookie.Name = "__monir_cookie_id";
 
         // Not readable from JavaScript, so XSS cannot exfiltrate the session id.
         options.Cookie.HttpOnly = true;
 
-        // Always: the __Host- cookie prefix REQUIRES Secure, and browsers silently drop the cookie
-        // without it. Localhost counts as a secure context, so this still works over http in dev.
+        // Always, so the cookie is never sent over plain HTTP. Localhost counts as a secure
+        // context, so this still works over http in dev.
+        //
+        // Note the cookie name carries no __Host- prefix. That prefix is a browser-enforced
+        // guarantee of Secure + Path=/ + no Domain; without it the same settings are applied
+        // below, but nothing stops a subdomain from overwriting the cookie.
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 
         // Lax lets the cookie ride ordinary top-level navigations back to the site but not
@@ -43,7 +47,7 @@ builder.Services
         // front-end origin needs it.
         options.Cookie.SameSite = SameSiteMode.Lax;
 
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(1);
 
         // Renews the ticket when it is used past halfway, so an active user is not logged out
         // mid-session. Renewal rewrites the server-side entry via ITicketStore.RenewAsync.

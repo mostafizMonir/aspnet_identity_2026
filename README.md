@@ -90,13 +90,13 @@ SID=$(curl -s -i -X POST $B/auth/login \
         -H 'Content-Type: application/json' \
         -d '{"username":"alice","password":"Password123!"}' \
       | grep -i '^set-cookie' \
-      | sed 's/.*__Host-session=\([^;]*\).*/\1/' \
+      | sed 's/.*__monir_cookie_id=\([^;]*\).*/\1/' \
       | tr -d '\r')
 
-curl -s -b "__Host-session=$SID" $B/auth/me
-curl -s -b "__Host-session=$SID" $B/protected
-curl -s -b "__Host-session=$SID" -X POST $B/auth/logout
-curl -s -b "__Host-session=$SID" $B/auth/me      # 401 - session revoked server-side
+curl -s -b "__monir_cookie_id=$SID" $B/auth/me
+curl -s -b "__monir_cookie_id=$SID" $B/protected
+curl -s -b "__monir_cookie_id=$SID" -X POST $B/auth/logout
+curl -s -b "__monir_cookie_id=$SID" $B/auth/me      # 401 - session revoked server-side
 ```
 
 ## Notes
