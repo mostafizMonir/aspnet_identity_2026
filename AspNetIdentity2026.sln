@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.9.12120.119 stable
+VisualStudioVersion = 18.9.12120.119
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetIdentity2026.Api", "src\AspNetIdentity2026.Api\AspNetIdentity2026.Api.csproj", "{768585C7-B299-4089-9EF9-C6329BE99717}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{81DDED9D-158B-E303-5F62-77A2896D2A5A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CookieAuthentication", "src\CookieAuthentication\CookieAuthentication.csproj", "{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,12 +45,25 @@ Global
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|x64.Build.0 = Release|Any CPU
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|x86.ActiveCfg = Release|Any CPU
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|x86.Build.0 = Release|Any CPU
+		{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF}.Debug|x64.Build.0 = Debug|Any CPU
+		{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF}.Debug|x86.Build.0 = Debug|Any CPU
+		{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF}.Release|x64.ActiveCfg = Release|Any CPU
+		{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF}.Release|x64.Build.0 = Release|Any CPU
+		{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF}.Release|x86.ActiveCfg = Release|Any CPU
+		{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{768585C7-B299-4089-9EF9-C6329BE99717} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{D5E4DF0A-FCCA-4173-BE6D-F4712AB89FDF} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F7F60154-5535-4CFB-848A-A2348446B740}

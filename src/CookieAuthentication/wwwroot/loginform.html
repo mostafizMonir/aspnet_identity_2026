@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cookie session demo</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f6f7f9;      --card: #fff;     --ink: #17191d;
+    --muted: #61656d;   --line: #dfe2e7;  --accent: #2f6fed;
+    --ok: #17803d;      --bad: #c02626;   --code: #f0f2f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181c;    --card: #1e2126;  --ink: #e8eaed;
+      --muted: #9aa0aa; --line: #31353c;  --accent: #6f9dff;
+      --ok: #4ade80;    --bad: #f87171;   --code: #14161a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2rem 1rem; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 940px; margin: 0 auto; display: grid; gap: 1rem; }
+  h1 { font-size: 1.35rem; margin: 0; }
+  h2 { font-size: .85rem; text-transform: uppercase; letter-spacing: .06em;
+       color: var(--muted); margin: 0 0 .75rem; }
+  .lede { color: var(--muted); margin: .25rem 0 .5rem; }
+  .grid { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  section { background: var(--card); border: 1px solid var(--line);
+            border-radius: 10px; padding: 1.1rem; }
+  label { display: block; font-size: .82rem; color: var(--muted); margin: .6rem 0 .2rem; }
+  input[type=text], input[type=password] {
+    width: 100%; padding: .5rem .6rem; border: 1px solid var(--line);
+    border-radius: 6px; background: var(--bg); color: var(--ink); font: inherit;
+  }
+  .row { display: flex; align-items: center; gap: .45rem; margin-top: .8rem;
+         font-size: .85rem; color: var(--muted); }
+  button {
+    font: inherit; padding: .45rem .8rem; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .buttons { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; }
+  code, pre { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
+  pre {
+    background: var(--code); border: 1px solid var(--line); border-radius: 8px;
+    padding: .8rem; margin: 0; overflow-x: auto; font-size: .8rem;
+    max-height: 320px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+  }
+  .status { font-weight: 600; }
+  .status.ok { color: var(--ok); } .status.bad { color: var(--bad); }
+  .hint { font-size: .8rem; color: var(--muted); margin-top: .7rem; }
+  .cookie-probe { border-left: 3px solid var(--accent); padding-left: .8rem; margin-top: .9rem; }
+</style>
+</head>
+<body>
+<main>
+  <div>
+    <h1>Cookie session demo</h1>
+    <p class="lede">
+      Sign in, then call the protected endpoints. The browser attaches the session cookie
+      automatically &mdash; none of the buttons below send a token by hand.
+    </p>
+  </div>
+
+  <div class="grid">
+    <section>
+      <h2>Sign in</h2>
+      <form id="login">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" value="alice" autocomplete="username">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" value="Password123!" autocomplete="current-password">
+        <div class="row">
+          <input id="rememberMe" type="checkbox">
+          <label for="rememberMe" style="margin:0">Remember me (persistent cookie vs. session cookie)</label>
+        </div>
+        <div class="buttons">
+          <button class="primary" type="submit">Log in</button>
+          <button type="button" data-call="POST /auth/logout">Log out</button>
+        </div>
+      </form>
+      <p class="hint">
+        Seeded users: <code>alice</code> is admin + member, <code>bob</code> is member only.
+        Password for both is <code>Password123!</code>.
+      </p>
+    </section>
+
+    <section>
+      <h2>Call an endpoint</h2>
+      <div class="buttons">
+        <button type="button" data-call="GET /auth/me">GET /auth/me</button>
+        <button type="button" data-call="GET /protected">GET /protected</button>
+        <button type="button" data-call="GET /admin">GET /admin</button>
+      </div>
+
+      <div class="cookie-probe">
+        <h2 style="margin-bottom:.4rem">What JavaScript can see</h2>
+        <pre id="cookieProbe">(click below)</pre>
+        <div class="buttons">
+          <button type="button" id="probe">Read document.cookie</button>
+        </div>
+        <p class="hint">
+          This stays empty even while you are logged in. The cookie is <code>HttpOnly</code>,
+          so script cannot read it &mdash; an XSS bug still cannot steal the session id.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <section>
+    <h2>Response log</h2>
+    <pre id="log">Ready.</pre>
+  </section>
+</main>
+
+<script>
+  const logEl = document.getElementById('log');
+
+  function log(line) {
+    logEl.textContent = line + '\n\n' + logEl.textContent;
+  }
+
+  // credentials:'same-origin' is the default for same-origin fetches, but it is spelled out
+  // because it is the entire point of the demo: the cookie rides along without any code
+  // reading it, storing it, or attaching an Authorization header.
+  async function call(method, path) {
+    let response;
+    try {
+      response = await fetch(path, { method, credentials: 'same-origin' });
+    } catch (err) {
+      log(`${method} ${path}\n  network error: ${err}`);
+      return;
+    }
+
+    const body = await response.text();
+    const marker = response.ok ? '\u2713' : '\u2717';
+    log(`${marker} ${method} ${path} \u2192 ${response.status} ${response.statusText}\n` +
+        (body ? '  ' + body : '  (no body)'));
+  }
+
+  document.getElementById('login').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const payload = {
+      username: document.getElementById('username').value,
+      password: document.getElementById('password').value,
+      rememberMe: document.getElementById('rememberMe').checked,
+    };
+
+    const response = await fetch('/auth/login', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const body = await response.text();
+    const marker = response.ok ? '\u2713' : '\u2717';
+    log(`${marker} POST /auth/login \u2192 ${response.status} ${response.statusText}\n  ${body}`);
+  });
+
+  for (const button of document.querySelectorAll('button[data-call]')) {
+    button.addEventListener('click', () => {
+      const [method, path] = button.dataset.call.split(' ');
+      call(method, path);
+    });
+  }
+
+  document.getElementById('probe').addEventListener('click', () => {
+    const visible = document.cookie;
+    document.getElementById('cookieProbe').textContent =
+      visible ? visible : 'document.cookie === ""   (nothing readable from script)';
+  });
+</script>
+</body>
+</html>

@@ -12,3 +12,19 @@ services:
     # HTTP and TLS terminates at the reverse proxy / ingress in front of it.
     ports:
       - "${API_PORT:-8080}:8080"
+
+  cookieauthentication:
+    image: ${DOCKER_REGISTRY-}cookieauthentication
+    build:
+      context: .
+      dockerfile: src/CookieAuthentication/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - ASPNETCORE_HTTP_PORTS=8080
+    # Reachable at http://localhost:8081/loginform. The container still listens on 8080
+    # internally; only the host-side port differs so it does not clash with the API above.
+    #
+    # The session cookie is Secure, and browsers treat http://localhost as a secure context,
+    # so the demo works over plain HTTP here. Any other hostname needs real TLS in front.
+    ports:
+      - "${COOKIE_AUTH_PORT:-8081}:8080"
