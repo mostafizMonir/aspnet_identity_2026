@@ -1,14 +1,12 @@
+# Applied automatically by `docker compose up` and by Visual Studio's F5.
+# Development-only overrides live here; keep docker-compose.yml deployable as-is.
+# Ports are deliberately NOT repeated here -- compose appends port lists rather than
+# replacing them, so a second mapping would collide with the base file's.
 services:
   aspnetidentity2026.api:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080
-      - ASPNETCORE_HTTPS_PORTS=8081
-    ports:
-      - "8080"
-      - "8081"
+      - Logging__LogLevel__Default=Debug
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
-      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
-      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
