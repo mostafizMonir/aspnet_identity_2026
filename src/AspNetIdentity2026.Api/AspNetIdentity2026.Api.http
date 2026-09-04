@@ -1,0 +1,11 @@
+@AspNetIdentity2026.Api_HostAddress = http://localhost:5010
+
+GET {{AspNetIdentity2026.Api_HostAddress}}/health
+Accept: text/plain
+
+###
+
+GET {{AspNetIdentity2026.Api_HostAddress}}/weatherforecast
+Accept: application/json
+
+###

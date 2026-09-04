@@ -1,0 +1,6 @@
+services:
+  aspnetidentity2026.api:
+    image: ${DOCKER_REGISTRY-}aspnetidentity2026api
+    build:
+      context: .
+      dockerfile: src/AspNetIdentity2026.Api/Dockerfile
