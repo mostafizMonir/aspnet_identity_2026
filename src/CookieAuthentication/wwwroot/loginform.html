@@ -126,6 +126,43 @@
     logEl.textContent = line + '\n\n' + logEl.textContent;
   }
 
+  // Client-side mirror of the server's absolute session timeout. The server is the real
+  // enforcer -- it stops honouring the cookie at ExpireTimeSpan regardless of this timer. This
+  // only keeps the UI honest by announcing the logout the instant the session dies, instead of
+  // waiting for the user's next click to surface a 401.
+  let sessionTimer = null;
+
+  function clearSessionTimer() {
+    if (sessionTimer !== null) {
+      clearTimeout(sessionTimer);
+      sessionTimer = null;
+    }
+  }
+
+  function scheduleLogout(expiresAt) {
+    clearSessionTimer();
+    if (!expiresAt) return;
+
+    // expiresAt is a DateTimeOffset (e.g. "...+06:00"); Date parses the offset correctly, so the
+    // subtraction lands on the right instant no matter which timezone the browser is in.
+    const msLeft = new Date(expiresAt).getTime() - Date.now();
+    if (Number.isNaN(msLeft)) return;
+
+    if (msLeft <= 0) {
+      onSessionExpired();
+      return;
+    }
+    sessionTimer = setTimeout(onSessionExpired, msLeft);
+  }
+
+  function onSessionExpired() {
+    sessionTimer = null;
+    // Fire-and-forget: clear the now-useless cookie so document.cookie/devtools stay tidy. The
+    // server-side session is already gone, so this endpoint may itself answer 401 -- that's fine.
+    fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+    log('⏱ Session expired — you are logged out. Log in again to continue.');
+  }
+
   // credentials:'same-origin' is the default for same-origin fetches, but it is spelled out
   // because it is the entire point of the demo: the cookie rides along without any code
   // reading it, storing it, or attaching an Authorization header.
@@ -142,6 +179,11 @@
     const marker = response.ok ? '\u2713' : '\u2717';
     log(`${marker} ${method} ${path} \u2192 ${response.status} ${response.statusText}\n` +
         (body ? '  ' + body : '  (no body)'));
+
+    // A successful manual logout, or any 401 (the session lapsed on the server), means there is
+    // nothing left to time out -- disarm so onSessionExpired doesn't fire a stale message later.
+    if (path === '/auth/logout' && response.ok) clearSessionTimer();
+    if (response.status === 401) clearSessionTimer();
   }
 
   document.getElementById('login').addEventListener('submit', async (event) => {
@@ -162,6 +204,13 @@
     const body = await response.text();
     const marker = response.ok ? '\u2713' : '\u2717';
     log(`${marker} POST /auth/login \u2192 ${response.status} ${response.statusText}\n  ${body}`);
+
+    // On success, arm the auto-logout timer from the expiry the server just reported.
+    if (response.ok) {
+      try {
+        scheduleLogout(JSON.parse(body).sessionExpiresAt);
+      } catch { /* non-JSON body: leave the timer disarmed */ }
+    }
   });
 
   for (const button of document.querySelectorAll('button[data-call]')) {

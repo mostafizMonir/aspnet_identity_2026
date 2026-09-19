@@ -49,9 +49,10 @@ builder.Services
 
         options.ExpireTimeSpan = TimeSpan.FromMinutes(1);
 
-        // Renews the ticket when it is used past halfway, so an active user is not logged out
-        // mid-session. Renewal rewrites the server-side entry via ITicketStore.RenewAsync.
-        options.SlidingExpiration = true;
+        // Absolute timeout: the session dies exactly 1 minute after login and is NOT extended by
+        // activity. With sliding disabled the handler never renews the ticket, so ExpireTimeSpan is
+        // a hard deadline -- the first request after the minute is treated as anonymous (401).
+        options.SlidingExpiration = false;
 
         // The cookie handler defaults to redirecting browsers to a login page. An API has no login
         // page, so answer with status codes instead of 302s.
